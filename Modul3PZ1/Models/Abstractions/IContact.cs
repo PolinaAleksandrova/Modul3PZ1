@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modul3PZ1
+namespace Modul3PZ1.Models.Abstractions
 {
-    interface IContact
+    public interface IContact
     {
+        public string Name { get; }
     }
 }
