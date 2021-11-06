@@ -12,11 +12,11 @@ namespace Modul3PZ1.Collections
 {
     public class CultureResolver : ICultureResolver
     {
-        private readonly CultureInfo _defaultInfo;
+        private IDictionary<string, CultureInfo> _defaultInfo;
 
         public CultureResolver()
         {
-            _defaultInfo = CultureInfo.GetCultureInfo("en-Gb");
+            _defaultInfo = new Dictionary<string, CultureInfo>();
         }
 
         public void Add(string strCulture)
@@ -28,23 +28,24 @@ namespace Modul3PZ1.Collections
 
         public CultureInfo GetCultureInfo(string name)
         {
-            if (string.IsNullOrEmpty(name))
+            var convert = name[0];
+
+            if (Regex.IsMatch(convert.ToString(), "[a-z]", RegexOptions.IgnoreCase))
             {
-                throw new ArgumentException("Name is null or empty");
+                return _defaultInfo["en-GB"];
             }
 
-            if (Regex.IsMatch(name, "[A-Za-z]"))
+            if (Regex.IsMatch(convert.ToString(), "[а-я]", RegexOptions.IgnoreCase))
             {
-                return CultureInfo.GetCultureInfo("en-Gb");
+                return _defaultInfo["ru-RU"];
             }
-            else if (Regex.IsMatch(name, "[ЁёА-Яа-я]"))
-            {
-                return CultureInfo.GetCultureInfo("ru-Ru");
-            }
-            else
-            {
-                return _defaultInfo;
-            }
+
+            throw new ArgumentException("No such CultureInfo stored");
+        }
+
+        public CultureInfo[] GetCultures()
+        {
+            return _defaultInfo.Values.ToArray();
         }
     }
 }

@@ -11,5 +11,6 @@ namespace Modul3PZ1.Collections.Abstractions
     {
         public CultureInfo GetCultureInfo(string name);
         public void Add(string strCulture);
+        public CultureInfo[] GetCultures();
     }
 }

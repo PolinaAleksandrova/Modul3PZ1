@@ -1,34 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using Modul3PZ1.Collections;
 using Modul3PZ1.Collections.Abstractions;
-using Modul3PZ1.Models.Abstractions;
 using Modul3PZ1.Models;
 
 namespace Modul3PZ1.Collections
 {
     public class PhoneBook<T> : IPhoneBook<T>
-        where T : IContact
+        where T : Contact
     {
-        private IDictionary<CultureInfo, ICollection<T>> _culturedCollections;
-        private IDictionary<CharType, ICollection<T>> _specialCollections;
+        private IDictionary<CultureInfo, List<T>> _culturedCollection;
+        private IDictionary<CharType, List<T>> _specialCollection;
         private ICultureResolver _cultureResolver;
 
-        public PhoneBook()
+        public PhoneBook(ICultureResolver cultureResolver)
         {
-            _cultureResolver = new CultureResolver();
-            _culturedCollections = new Dictionary<CultureInfo, ICollection<T>>();
-            _culturedCollections.Add(CultureInfo.GetCultureInfo("ru-Ru"), new List<T>());
-            _culturedCollections.Add(CultureInfo.GetCultureInfo("en-Gb"), new List<T>());
-            _specialCollections = new Dictionary<CharType, ICollection<T>>();
-            _specialCollections.Add(CharType.Number, new List<T>());
-            _specialCollections.Add(CharType.Special, new List<T>());
+            _cultureResolver = cultureResolver;
+            _cultureResolver.Add("en-GB");
+            _cultureResolver.Add("ru-RU");
+
+            _culturedCollection = new Dictionary<CultureInfo, List<T>>();
+            _specialCollection = new Dictionary<CharType, List<T>>();
+
+            foreach (var culture in _cultureResolver.GetCultures())
+            {
+                _culturedCollection.Add(culture, new List<T>());
+            }
+
+            _specialCollection.Add(CharType.Number, new List<T>());
+            _specialCollection.Add(CharType.Special, new List<T>());
         }
 
         public IReadOnlyCollection<T> this[string key]
@@ -36,17 +42,17 @@ namespace Modul3PZ1.Collections
             get
             {
                 var collection = DetermineCollection(key);
-                var result = new List<T>();
+                var res = new List<T>();
 
                 foreach (var contact in collection)
                 {
                     if (contact.Name.StartsWith(key, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        result.Add(contact);
+                        res.Add(contact);
                     }
                 }
 
-                return result;
+                return res;
             }
         }
 
@@ -58,27 +64,27 @@ namespace Modul3PZ1.Collections
             }
 
             var collection = DetermineCollection(contact.Name);
-            collection.Sort(new ContactComparer<T>());
             collection.Add(contact);
+            collection.Sort(new ContactComparer<T>());
         }
 
-        public ICollection<T> DetermineCollection(string name)
+        private List<T> DetermineCollection(string name)
         {
-            var cultureInfo = _cultureResolver.GetCultureInfo(name);
+            try
+            {
+                var cultureInfo = _cultureResolver.GetCultureInfo(name);
 
-            if (cultureInfo == null)
+                return _culturedCollection[cultureInfo];
+            }
+            catch
             {
                 if (Regex.IsMatch(name[0].ToString(), "[0-9]"))
                 {
-                    return _specialCollections[CharType.Number];
+                    return _specialCollection[CharType.Number];
                 }
-                else
-                {
-                    return _specialCollections[CharType.Special];
-                }
-            }
 
-            return _culturedCollections[cultureInfo];
+                return _specialCollection[CharType.Special];
+            }
         }
     }
 }

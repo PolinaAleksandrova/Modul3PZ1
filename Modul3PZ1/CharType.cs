@@ -8,7 +8,7 @@ namespace Modul3PZ1
 {
     public enum CharType
     {
-        Number = 0,
-        Special = 1
+        Number,
+        Special
     }
 }
