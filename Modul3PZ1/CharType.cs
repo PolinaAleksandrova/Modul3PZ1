@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Modul3PZ1
 {
-    public interface IPhoneBook<T>
+    public enum CharType
     {
-        void Add(T contact);
-        T Get(string key);
-        IReadOnlyCollection<T> this[string key] { get; }
+        Number,
+        Special
     }
 }
